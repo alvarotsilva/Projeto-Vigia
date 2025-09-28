@@ -59,3 +59,39 @@ O logotipo também é carregado a partir de um link da web.
 Tema e Cores: O estilo visual (cores, fundo, etc.) é definido usando CSS customizado no início do script. Você pode alterar os códigos hexadecimais para criar um novo tema.
 
 Logotipo e Fonte de Dados: As URLs do logotipo e do arquivo CSV são definidas como constantes no início do script (LOGO_URL e FILE_URL). Você pode substituí-las para usar suas próprias fontes.
+
+
+1) Estrutura de pastas
+projeto_vigia/
+├─ pyproject.toml
+├─ src/
+│  └─ projeto_vigia/
+│     ├─ app.py                      # Streamlit “enxuto”: orquestra
+│     ├─ __init__.py
+│     ├─ config.py                   # Constantes/URLs/cores
+│     ├─ theming.py                  # CSS/tema e set_page_config()
+│     ├─ services/
+│     │   ├─ __init__.py
+│     │   ├─ drive_fetch.py          # Download seguro do GDrive/HTTP
+│     │   └─ data_io.py              # Leitura CSV + validação/normalização
+│     ├─ domain/
+│     │   ├─ __init__.py
+│     │   ├─ models.py               # (Opcional) Pydantic BaseModel dos dados
+│     │   └─ preprocessing.py        # Limpeza, renome, tipos, etc.
+│     ├─ analytics/
+│     │   ├─ __init__.py
+│     │   ├─ filters.py              # Filtragem por estado e janela de data
+│     │   └─ aggregations.py         # groupbys (por dia, bioma, município)
+│     ├─ charts/
+│     │   ├─ __init__.py
+│     │   ├─ time_series.py          # Altair line
+│     │   ├─ bar_charts.py           # Bioma/município
+│     │   └─ maps.py                 # st.map / pydeck (se quiser evoluir)
+│     └─ ui/
+│         ├─ __init__.py
+│         ├─ sidebar.py              # Selectbox, date inputs, botão “Analisar”
+│         └─ sections.py             # Métricas, tabs, expander, prevenção
+└─ tests/
+   ├─ test_data_io.py
+   ├─ test_filters.py
+   └─ test_aggregations.py
