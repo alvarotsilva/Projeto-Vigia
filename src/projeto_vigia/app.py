@@ -5,11 +5,16 @@ from projeto_vigia.theming import setup_page, inject_css
 from projeto_vigia.config import FILE_URL, LOGO_URL
 from projeto_vigia.services.data_io import read_csv_from_gdrive
 from projeto_vigia.domain.preprocessing import normalize_dataframe
-from projeto_vigia.analytics.filters import filter_by_state_and_date
-from projeto_vigia.analytics.aggregations import by_day, by_biome, top_municipios
+from projeto_vigia.analytics.filters import (
+    filter_by_date_range, filter_by_turno, filter_by_biomes, filter_numeric_columns
+)
+from projeto_vigia.analytics.aggregations import (
+    by_day, by_biome, top_municipios, series_by_dimension, compute_critical_regions
+)
 from projeto_vigia.ui.sidebar import render_sidebar
 from projeto_vigia.ui.sections import (
-    render_summary_tab, render_time_tab, render_biome_city_tab, render_prevention_tab
+    render_summary_tab, render_time_tab, render_biome_city_tab,
+    render_prevention_tab, render_stats_tab
 )
 
 setup_page()
@@ -35,24 +40,60 @@ if df_full.empty:
     st.warning("Os dados não puderam ser carregados. Verifique o link/permissões.")
 elif sidebar_state and sidebar_state["buscar"]:
     estado = sidebar_state["estado"]
-    start_dt = sidebar_state["start_date"]
-    end_dt = sidebar_state["end_date"]
+    biomas = sidebar_state["biomas"]
+    start_dt = sidebar_state["start"]
+    end_dt = sidebar_state["end"]
+    turno_preset = sidebar_state["turno_preset"]
+    custom_time = sidebar_state["custom_time"]
+    numeric_rules = sidebar_state["numeric_rules"]
 
-    df_focos = filter_by_state_and_date(df_full, estado, start_dt, end_dt)
-    if df_focos.empty:
+    # Estado
+    dff = df_full if estado == "Todos" else df_full[df_full["estado_nome"] == estado].copy()
+    # Período
+    dff = filter_by_date_range(dff, start_dt, end_dt)
+    # Bioma(s)
+    dff = filter_by_biomes(dff, biomas)
+    # Turno
+    dff = filter_by_turno(dff, preset=turno_preset, custom_range=custom_time)
+    # Regras numéricas
+    dff = filter_numeric_columns(dff, numeric_rules)
+
+    if dff.empty:
         st.warning("Nenhum foco de queimada foi encontrado para os filtros selecionados.")
     else:
-        st.success(f"Análise concluída para **{estado}** entre **{start_dt:%d/%m/%Y}** e **{end_dt:%d/%m/%Y}**!")
-        tab1, tab2, tab3, tab4 = st.tabs(["🗺️ Mapa e Métricas", "📈 Análise Temporal", "🌳 Bioma & Município", "💡 Prevenção"])
+        # Regiões críticas (box na tela principal)
+        crit = compute_critical_regions(dff, top_n=5)
 
-        with tab1: render_summary_tab(df_focos, estado)
-        with tab2: render_time_tab(by_day(df_focos))
-        with tab3: render_biome_city_tab(by_biome(df_focos), top_municipios(df_focos))
-        with tab4: render_prevention_tab()
+        st.success(f"Análise concluída para **{estado}** entre **{start_dt:%d/%m/%Y}** e **{end_dt:%d/%m/%Y}**!")
+        st.subheader("Regiões Críticas (top 5)")
+        st.dataframe(crit[["estado_nome","municipio_nome","Bioma","focos","risco_medio","frp_medio","frp_max","precip_media","dias_sem_chuva_med"]])
+
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "🗺️ Mapa e Métricas",
+            "📈 Séries Temporais",
+            "🌳 Bioma & Município",
+            "📊 Estatística",
+            "💡 Prevenção",
+        ])
+
+        with tab1:
+            render_summary_tab(dff, estado)
+        with tab2:
+            render_time_tab(
+                by_day(dff),
+                series_by_dimension(dff, "estado_nome"),
+                series_by_dimension(dff, "Bioma"),
+            )
+        with tab3:
+            render_biome_city_tab(by_biome(dff), top_municipios(dff))
+        with tab4:
+            render_stats_tab(dff)
+        with tab5:
+            render_prevention_tab()
 
         with st.expander("Ver dados brutos (todas as colunas)"):
-            df_disp = df_focos.rename(columns={"lat":"Latitude","lon":"Longitude","data_hora":"Data/Hora",
-                                               "municipio_nome":"Município","estado_nome":"Estado"})
+            df_disp = dff.rename(columns={"lat":"Latitude","lon":"Longitude","data_hora":"Data/Hora",
+                                          "municipio_nome":"Município","estado_nome":"Estado"})
             st.dataframe(df_disp)
 else:
     st.info("⬅️ Selecione os filtros na barra lateral e clique em **Analisar** para começar.")
