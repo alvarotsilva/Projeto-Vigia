@@ -1,61 +1,145 @@
-🔥 Painel de Análise de Queimadas no Brasil
-Este é um painel interativo desenvolvido com Streamlit para visualizar e analisar dados de focos de queimadas no Brasil. A aplicação carrega os dados de um arquivo CSV hospedado online, oferece filtros dinâmicos e apresenta as informações em múltiplos formatos, incluindo mapas, gráficos e métricas resumidas.
+# 🔥 Painel de Análise de Queimadas no Brasil
 
-✨ Recursos
-Painel Interativo: Interface web amigável e reativa para explorar os dados.
+Este é um painel interativo desenvolvido com **Streamlit** para visualizar e analisar dados de focos de queimadas no Brasil.  
+A aplicação carrega os dados de satélite (NOAA/INPE), oferece filtros dinâmicos e apresenta as informações em múltiplos formatos, incluindo mapas, gráficos e métricas resumidas.
 
-Tema Escuro Personalizado: Um tema visualmente agradável com um logotipo personalizado e uma paleta de cores coesa.
+---
 
-Filtros Dinâmicos: Filtre os focos de queimadas por Estado e por um intervalo de datas específico.
+## ✨ Recursos
 
-Análise Multidimensional: Os dados são apresentados em quatro abas principais:
+- **Painel Interativo**: Interface web amigável e reativa para explorar os dados.  
+- **Tema Escuro Personalizado**: Um tema visualmente agradável com logotipo e paleta de cores coesa.  
+- **Filtros Dinâmicos**: Filtre os focos de queimadas por Estado e intervalo de datas.  
+- **Análise Multidimensional**:  
+  - 🗺️ **Mapa e Métricas**: geolocalização dos focos e estatísticas principais.  
+  - 📈 **Análise Temporal**: evolução diária dos focos.  
+  - 🌳 **Análise por Bioma e Município**: distribuição dos focos por bioma e municípios mais afetados.  
+  - 💡 **Prevenção**: dicas práticas de combate e prevenção de incêndios.  
+- **Visualização de Dados Brutos**: seção expansível com toda a tabela analisada.
 
-🗺️ Mapa e Métricas: Um mapa interativo com a geolocalização dos focos e cartões com estatísticas principais (total de focos, município mais afetado, etc.).
+---
 
-📈 Análise Temporal: Gráfico de linhas que mostra a evolução diária dos focos de queimada no período selecionado.
+## 📊 Fonte de Dados
 
-🌳 Análise por Bioma e Município: Gráficos de barras que detalham a distribuição dos focos por bioma e listam os 10 municípios mais afetados.
+Os dados vêm do **NOAA/INPE**, obtidos por satélites de monitoramento (ex.: GOES-19).  
+Cada linha do arquivo CSV representa **um foco de calor detectado em coordenadas específicas**, com atributos ambientais associados.
 
-💡 Prevenção: Uma seção informativa com dicas práticas sobre como evitar incêndios florestais.
+* O arquivo CSV está hospedado em um link público do Google Drive. A função de carregamento é projetada para lidar com a confirmação de download do Google, garantindo um acesso mais estável aos dados.
 
-Visualização de Dados Brutos: Uma seção expansível para visualizar a tabela de dados completa que está sendo analisada.
+### O que cada coluna representa
 
-🚀 Como Executar
-Para executar este projeto localmente, siga os passos abaixo:
+- **DataHora** → instante em que o satélite detectou o foco de calor (data + hora UTC).  
+- **Satelite** → qual satélite fez a observação (aqui: GOES-19).  
+- **Pais / Estado / Municipio** → localização administrativa associada às coordenadas.  
+- **Bioma** → bioma onde o foco ocorreu (Caatinga, Cerrado, Mata Atlântica).  
+- **DiaSemChuva** → número de dias consecutivos sem registro de chuva. `-999` = valor faltante.  
+- **Precipitacao** → precipitação acumulada (mm) no dia da observação.  
+- **RiscoFogo** → índice adimensional (0–1), quanto mais próximo de 1, maior o risco.  
+- **Latitude / Longitude** → coordenadas geográficas do foco.  
+- **FRP (Fire Radiative Power)** → potência radiativa do fogo, em MW, relacionada à intensidade do incêndio.
 
-Clone o Repositório (ou baixe os arquivos)
+---
 
-Baixe o arquivo analise_queimadas_brasil.py.
+## 🔎 O que podemos analisar a partir da base
 
-Crie um Ambiente Virtual (Recomendado)
+- **Distribuição temporal**  
+  - Registros entre **07/04/2025 e 10/04/2025**.  
+  - Detecções em horários diurnos e noturnos (alta frequência do GOES-19).  
 
-python -m venv venv
-source venv/bin/activate  # No Windows: venv\Scripts\activate
+- **Distribuição espacial**  
+  - Estados mais recorrentes: **Bahia (Caatinga)** e **Minas Gerais (Cerrado)**.  
+  - Outros registros: Mato Grosso do Sul, Piauí, Pernambuco, Maranhão, Paraíba.  
 
-Instale as Dependências
+- **Biomas**  
+  - Presentes: **Caatinga, Cerrado e Mata Atlântica**.  
+  - Destaque para a Caatinga na Bahia (Ibicoara, Itaguaçu da Bahia, Mortugaba).  
 
-Crie um arquivo requirements.txt com o conteúdo abaixo e execute pip install -r requirements.txt.
+- **Condições climáticas associadas**  
+  - Dias sem chuva: 0 a 16.  
+  - Precipitação: geralmente 0 → ambiente seco. Casos pontuais com chuva > 1 mm.  
 
-streamlit
-pandas
-altair
-requests
-Pillow
+- **Risco de fogo**  
+  - Maioria com valores altos (0.8–1.0).  
+  - Casos com risco menor (0.18–0.65) também detectados.  
 
-Execute a Aplicação
+- **Intensidade (FRP)**  
+  - Varia entre ~62 MW e 285 MW.  
+  - Mais altos (ex.: Ibicoara/BA) indicam incêndios intensos.  
 
-No seu terminal, navegue até a pasta onde o arquivo .py está salvo e execute o seguinte comando:
+- **Duplicidade / Revisita**  
+  - Mesma região pode aparecer em horários próximos (ex.: Uberaba/MG), indicando revisita do satélite ou detecção múltipla.
 
-streamlit run analise_queimadas_brasil.py
+---
 
-O seu navegador abrirá automaticamente com o painel em execução.
+## 🚀 Como Executar
 
-📊 Fonte de Dados
-O painel carrega os dados de um arquivo CSV hospedado em um link público do Google Drive. A função de carregamento é projetada para lidar com a confirmação de download do Google, garantindo um acesso mais estável aos dados.
+### 1. Clonar o repositório
+```bash
+git clone <url-do-repositorio>
+cd Projeto-Vigia-main
+```
 
-O logotipo também é carregado a partir de um link da web.
+### 2. Configurar ambiente com Poetry
+```bash
+poetry install
+```
 
-🎨 Personalização
-Tema e Cores: O estilo visual (cores, fundo, etc.) é definido usando CSS customizado no início do script. Você pode alterar os códigos hexadecimais para criar um novo tema.
+### 3. Rodar a aplicação
+```bash
+poetry run streamlit run src/projeto_vigia/app.py
+```
 
-Logotipo e Fonte de Dados: As URLs do logotipo e do arquivo CSV são definidas como constantes no início do script (LOGO_URL e FILE_URL). Você pode substituí-las para usar suas próprias fontes.
+O painel abrirá automaticamente no navegador em **http://localhost:8501**.
+
+---
+
+## 🎨 Personalização
+
+- **Tema e cores**: definidos em `theming.py` via CSS customizado.  
+- **URLs do logotipo e dados**: configuradas em `config.py` (`LOGO_URL` e `FILE_URL`).  
+
+---
+
+## 📂 Estrutura de Pastas
+
+```
+projeto_vigia/
+├─ pyproject.toml
+├─ src/
+│  └─ projeto_vigia/
+│     ├─ __init__.py
+│     ├─ app.py                      # Streamlit “enxuto”: orquestra
+│     ├─ config.py                   # Constantes/URLs/cores
+│     ├─ theming.py                  # CSS/tema e set_page_config()
+│     ├─ services/                   # Camada de acesso a dados
+│     │   ├─ __init__.py
+│     │   ├─ drive_fetch.py          # Download seguro do GDrive/HTTP
+│     │   └─ data_io.py              # Leitura CSV + validação/normalização
+│     ├─ domain/                     # Modelos e pré-processamento
+│     │   ├─ __init__.py
+│     │   ├─ models.py               # Pydantic BaseModel dos dados
+│     │   └─ preprocessing.py        # Limpeza, renome, tipos, etc.
+│     ├─ analytics/                  # Filtros e agregações
+│     │   ├─ __init__.py
+│     │   ├─ filters.py              # Filtragem por estado e janela de data
+│     │   └─ aggregations.py         # groupbys (por dia, bioma, município)
+│     ├─ charts/                     # Gráficos
+│     │   ├─ __init__.py
+│     │   ├─ time_series.py          # Altair line
+│     │   ├─ bar_charts.py           # Bioma/município
+│     │   └─ maps.py                 # st.map / pydeck (se quiser evoluir)
+│     └─ ui/                         # Sidebar e seções do painel
+│         ├─ __init__.py
+│         ├─ sidebar.py              # Selectbox, date inputs, botão “Analisar”
+│         └─ sections.py             # Métricas, tabs, expander, prevenção
+└─ tests/                            # Testes unitários
+   ├─ test_data_io.py                # Não implementado
+   ├─ test_filters.py
+   └─ test_aggregations.py           # Não implementado
+```
+
+---
+
+## ✅ Testes
+
+Testes básicos estão disponíveis em `tests/` para validar filtros, agregações e IO de dados.

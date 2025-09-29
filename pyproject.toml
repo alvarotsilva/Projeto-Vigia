@@ -1,0 +1,19 @@
+[project]
+name = "projeto_vigia"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "abc", email = "abc@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["streamlit (>=1.50.0,<2.0.0)", "pydeck (>=0.9.1,<0.10.0)", "numpy (>=2.3.3,<3.0.0)"]
+
+# Agora está certo: o pacote real é "projeto_vigia", não "src"
+packages = [
+    { include = "projeto_vigia", from = "src" }
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
